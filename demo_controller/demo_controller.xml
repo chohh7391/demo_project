@@ -1,0 +1,9 @@
+<library path="demo_controller">
+    <class name="demo_controller/SineJointController"
+           type="demo_controller::SineJointController"
+           base_class_type="controller_interface::ControllerInterface">
+        <description>
+            Sweeps one Franka arm joint in a sine about where it was switched in (position mode).
+        </description>
+    </class>
+</library>

@@ -1,0 +1,11 @@
+# What the demo project adds to the core's robot registry (cho_robot_config).
+#
+# sine_joint_controller claims the Franka arm's position command interfaces,
+# like the core's own controllers, so every exclusive switch has to take it
+# down -- guarded_mission()'s abort to the hold controller included. The
+# switch finds the arm's controllers in controllers.additional_arm, and this
+# file adds to it: env-hooks/ put it on CHO_ROBOT_CONFIG_ADDITIONS when the
+# workspace is sourced, and the core's registry loader reads it from there.
+# Format: the docstring of cho_robot_config/registry.py.
+franka:
+  additional_arm: [sine_joint_controller]

@@ -1,0 +1,4 @@
+# generated from demo_bringup/env-hooks/robot_config_additions.sh.in
+# The project's registry additions (config/robot_config_additions.yaml), for
+# every process started from a shell that sourced this workspace.
+ament_prepend_unique_value CHO_ROBOT_CONFIG_ADDITIONS "$AMENT_CURRENT_PREFIX/share/@PROJECT_NAME@/config/robot_config_additions.yaml"

@@ -1,0 +1,7 @@
+# task_params of demo_sine_sweep (demo_tasks/sine_sweep.py, DEFAULTS):
+#   ros2 launch cho_task_manager run_task_manager.launch.py ... task_params:=<this file>
+# The sweep itself (joint, amplitude, frequency) is the controller's:
+# demo_bringup/config/mujoco/sine_joint_controller.yaml.
+controller: sine_joint_controller   # a controller the registry additions name
+sweep_sec: 10.0                     # [s] the controller runs before the hold takes over
+home_duration: 3.0                  # [s] per home move, a minimum

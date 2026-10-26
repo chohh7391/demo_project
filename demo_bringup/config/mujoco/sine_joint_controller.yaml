@@ -1,0 +1,16 @@
+# sine_joint_controller in the core's Franka MuJoCo bringup, position mode.
+# launch/bringup_mujoco.launch.py hands this file to its spawner, so the core's
+# controllers.yaml needs no entry for it.
+sine_joint_controller:
+  ros__parameters:
+    # What the core's bringup gives its own controllers in its runtime
+    # parameter file (cho_bringup_common/runtime_params.py).
+    robot_type: fr3
+    bringup_type: mujoco
+    ee_name: fr3_hand_tcp
+    # The sweep (demo_controller/src/sine_joint_controller_parameters.yaml).
+    joint: 7            # 1-based
+    amplitude: 0.15     # [rad] either side of where it was switched in
+    frequency: 0.5      # [Hz]
+    ramp_sec: 2.0       # [s] from 0 to the full amplitude
+    max_rate: 1.0       # [rad/s]; amplitude * 2 pi frequency must stay under it

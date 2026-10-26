@@ -1,0 +1,37 @@
+# SineJointController parameters (generate_parameter_library), as the core
+# declares its own: ranges here, the check that relates two of them in the
+# controller (peak_rate() of amplitude and frequency under max_rate).
+demo_sine_joint_controller:
+  joint:
+    type: int
+    default_value: 7
+    description: "The arm joint swept, 1-based."
+    validation:
+      bounds<>: [1, 7]
+  amplitude:
+    type: double
+    default_value: 0.15
+    description: "How far the joint swings either side of where it was activated [rad]."
+    validation:
+      gt<>: [0.0]
+      lt_eq<>: [0.5]
+  frequency:
+    type: double
+    default_value: 0.5
+    description: "Sweeps per second [Hz]."
+    validation:
+      gt<>: [0.0]
+      lt_eq<>: [2.0]
+  ramp_sec:
+    type: double
+    default_value: 2.0
+    description: "How long the amplitude takes to rise from 0 to amplitude [s]."
+    validation:
+      bounds<>: [0.1, 10.0]
+  max_rate:
+    type: double
+    default_value: 1.0
+    description: "The highest joint rate the sweep may reach, amplitude * 2 pi frequency [rad/s]."
+    validation:
+      gt<>: [0.0]
+      lt_eq<>: [2.0]
