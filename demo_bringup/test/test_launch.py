@@ -58,3 +58,18 @@ def test_the_controller_type_is_the_plugin_demo_controller_exports():
     plugins = ET.parse(os.path.join(get_package_share_directory('demo_controller'), 'demo_controller.xml'))
     names = [entry.get('name') for entry in plugins.getroot().iter('class')]
     assert _launch_module().SINE_CONTROLLER_TYPE in names
+
+
+def test_the_plugins_publish_a_body_the_world_has_with_a_plugin_the_core_exports():
+    module = _launch_module()
+    arguments = {entity.name: entity for entity in module.generate_launch_description().entities
+                 if isinstance(entity, DeclareLaunchArgument)}
+    world = ET.parse(_text(arguments['mujoco_world'].default_value)).getroot()
+    bodies = {body.get('name') for body in world.iter('body')}
+    with open(_text(arguments['mujoco_plugins'].default_value)) as stream:
+        plugins = yaml.safe_load(stream)['/**']['ros__parameters']['mujoco_plugins']
+    exported = ET.parse(os.path.join(get_package_share_directory('cho_simulation_mujoco'), 'plugins.xml'))
+    classes = {entry.get('name') for entry in exported.getroot().iter('class')}
+    for name, plugin in plugins.items():
+        assert plugin['type'] in classes, (name, plugin['type'], classes)
+        assert set(plugin.get('bodies', [])) <= bodies, (name, plugin.get('bodies'), bodies)

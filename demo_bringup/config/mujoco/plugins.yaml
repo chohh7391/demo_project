@@ -1,0 +1,13 @@
+# The mujoco_ros2_control plugins the demo loads into the simulation
+# (launch/bringup_mujoco.launch.py hands this to the core bringup's
+# mujoco_plugins:=). Each gets the MuJoCo model and data every step.
+/**:
+  ros__parameters:
+    mujoco_plugins:
+      body_poses:
+        # The core's ground-truth poses (cho_simulation_mujoco): the box of
+        # worlds/bench.xml, on /sim/body_pose/box, which demo_box_reach latches.
+        type: cho_simulation_mujoco/BodyPosePublisher
+        bodies: [box]
+        frame_id: fr3_link0     # the MuJoCo world is fr3_link0: the FR3 stands at the origin
+        rate: 50.0              # [Hz] of simulated time

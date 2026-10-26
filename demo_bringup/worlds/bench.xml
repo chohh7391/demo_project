@@ -1,0 +1,27 @@
+<mujoco model="demo bench">
+  <!-- The demo's world, loaded with the core's FR3 by mujoco_world:= (the core composes the two at
+       launch). In the robot's frame: the FR3's fr3_link0 is the world origin. A bench in front of the
+       arm and a 5 cm box on it, free to move; config/mujoco/plugins.yaml publishes the box's pose. -->
+  <statistic center="0.3 0 0.3" extent="1.0"/>
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="120" elevation="-20"/>
+  </visual>
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture type="2d" name="floor" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3"
+      markrgb="0.8 0.8 0.8" width="300" height="300"/>
+    <material name="floor" texture="floor" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+  </asset>
+  <worldbody>
+    <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
+    <geom name="floor" size="0 0 0.05" type="plane" material="floor"/>
+    <!-- The bench: 0.4 x 0.6 m, its top 0.10 m above the floor. -->
+    <geom name="bench" type="box" pos="0.55 0 0.05" size="0.2 0.3 0.05" rgba="0.55 0.45 0.35 1"/>
+    <body name="box" pos="0.45 0.10 0.125">
+      <freejoint/>
+      <geom type="box" size="0.025 0.025 0.025" mass="0.1" rgba="0.9 0.2 0.2 1"/>
+    </body>
+  </worldbody>
+</mujoco>

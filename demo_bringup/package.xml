@@ -11,6 +11,7 @@
 
   <exec_depend>cho_bringup_franka</exec_depend>
   <exec_depend>cho_robot_config</exec_depend>
+  <exec_depend>cho_simulation_mujoco</exec_depend>
   <exec_depend>controller_manager</exec_depend>
   <exec_depend>demo_controller</exec_depend>
   <exec_depend>launch</exec_depend>

@@ -1,0 +1,9 @@
+# task_params of demo_box_reach (demo_tasks/box_reach.py, DEFAULTS):
+#   ros2 launch cho_task_manager run_task_manager.launch.py ... task_params:=<this file>
+# The body's pose comes from the simulation: demo_bringup's plugins.yaml
+# publishes it, worlds/bench.xml places it.
+body: box                                 # a body BodyPosePublisher publishes
+standoff: 0.15                            # [m] above it, where the TCP stops
+task_controller: task_space_ik_controller # the position-mode task-space controller
+move_duration: 4.0                        # [s] per move, a minimum
+pose_timeout: 5.0                         # [s] to wait for the body's pose

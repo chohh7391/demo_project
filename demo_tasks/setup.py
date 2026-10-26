@@ -41,6 +41,7 @@ setup(
         # project's prefix.
         'cho_task_manager.tasks': [
             'demo_sine_sweep = demo_tasks.sine_sweep:TASK',
+            'demo_box_reach = demo_tasks.box_reach:TASK',
         ],
     },
 )

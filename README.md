@@ -2,17 +2,18 @@
 
 A small project that builds on the core
 ([cho_robot_project](https://github.com/chohh7391/cho_robot_project)) at the tag in `demo_project.repos`, the
-way a research project does: its own controller, a bringup that wraps the core's, and a task the core's task
-manager runs. Franka FR3 in MuJoCo sweeps one joint with the project's controller, between two moves home on the
-core's hold controller.
+way a research project does: its own controller, a bringup that wraps the core's, its own simulated world and what
+it reads from it, and tasks the core's task manager runs. Franka FR3 in MuJoCo, at a bench with a box on it, sweeps
+one joint with the project's controller (`demo_sine_sweep`), or reads the box's pose out of the simulation and stops
+the TCP above it (`demo_box_reach`).
 
 It edits nothing in the core. Each piece uses one of the core's extension points:
 
 | Package | Holds | Core extension point |
 | --- | --- | --- |
 | `demo_controller` | `demo_controller/SineJointController`: in position mode, sweeps one joint in a sine about where it was switched in; parameters by `generate_parameter_library`; a test of the sweep | a controller plugin on the robot's base class, `FrankaBaseController` |
-| `demo_bringup` | `bringup_mujoco.launch.py`: the core's Franka MuJoCo bringup, plus `sine_joint_controller` loaded inactive; its parameters; `config/robot_config_additions.yaml` and the environment hook that registers it | including a core bringup; `CHO_ROBOT_CONFIG_ADDITIONS` |
-| `demo_tasks` | the task `demo_sine_sweep` and its example `task_params` file | the `cho_task_manager.tasks` entry point; `task_params:=` |
+| `demo_bringup` | `bringup_mujoco.launch.py`: the core's Franka MuJoCo bringup in `worlds/bench.xml`, with `config/mujoco/plugins.yaml`, plus `sine_joint_controller` loaded inactive; its parameters; `config/robot_config_additions.yaml` and the environment hook that registers it | including a core bringup; `mujoco_world:=`, `mujoco_plugins:=` (the core's `BodyPosePublisher`); `CHO_ROBOT_CONFIG_ADDITIONS` |
+| `demo_tasks` | the tasks `demo_sine_sweep` and `demo_box_reach` (with `StandoffPoseBehavior`), their example `task_params` files | the `cho_task_manager.tasks` entry point; `task_params:=`; `PoseTargetBehavior` on a simulated body's pose |
 
 How the core expects a project to be laid out, and each extension point:
 [templates/overlay_project/README.md](https://github.com/chohh7391/cho_robot_project/blob/main/templates/overlay_project/README.md)
@@ -66,6 +67,29 @@ Where each setting is:
   `demo_bringup/config/mujoco/sine_joint_controller.yaml`, ranges in
   `demo_controller/src/sine_joint_controller_parameters.yaml`;
 - how long it sweeps, and the home moves: `task_params`, `demo_tasks/config/sine_sweep.yaml`.
+
+### The world and what is read from it
+
+The bringup gives the core's `mujoco_world:=` the demo's world, `demo_bringup/worlds/bench.xml`: a floor, a bench in
+front of the arm and a 5 cm box on it, free to move. The core composes it with the FR3's model at launch, so the
+world is a plain MJCF file here, with nothing of the robot in it. The FR3 stands at the world's origin: a pose in the
+world is a pose in `fr3_link0`.
+
+`mujoco_plugins:=` gets `demo_bringup/config/mujoco/plugins.yaml`, which loads the core's
+`cho_simulation_mujoco/BodyPosePublisher` for the box: its pose, the simulation's ground truth, on
+`/sim/body_pose/box` at 50 Hz of simulated time, stamped `fr3_link0`. A project needing other scene data writes a
+plugin of its own the same way (the core's `cho_simulation_mujoco` README).
+
+```bash
+ros2 launch cho_task_manager run_task_manager.launch.py robot_type:=franka task:=demo_box_reach \
+  control_mode:=position use_sim_time:=true \
+  task_params:=$(ros2 pkg prefix --share demo_tasks)/config/box_reach.yaml
+```
+
+`demo_box_reach` goes home on the hold controller, latches the box's pose (`PoseTargetBehavior`), makes the pose
+`standoff` above it with the TCP pointing down (`StandoffPoseBehavior`), moves there with `task_space_ik_controller`,
+and goes home again. Move the box in `worlds/bench.xml` and the task follows it; a perceived pose, such as
+cho_object_pose's, is latched the same way from its topic.
 
 ## Why the registry additions
 

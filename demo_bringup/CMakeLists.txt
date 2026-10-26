@@ -17,7 +17,7 @@ project(demo_bringup)
 
 find_package(ament_cmake REQUIRED)
 
-install(DIRECTORY config launch DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY config launch worlds DESTINATION share/${PROJECT_NAME})
 
 # Sourcing the workspace adds config/robot_config_additions.yaml to
 # CHO_ROBOT_CONFIG_ADDITIONS, which the core's registry loader reads.
