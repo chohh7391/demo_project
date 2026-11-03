@@ -5,7 +5,8 @@ A small project that builds on the core
 way a research project does: its own controller, a bringup that wraps the core's, its own simulated world and what
 it reads from it, and tasks the core's task manager runs. Franka FR3 in MuJoCo, at a bench with a box on it, sweeps
 one joint with the project's controller (`demo_sine_sweep`), or reads the box's pose out of the simulation and stops
-the TCP above it (`demo_box_reach`).
+the TCP above it (`demo_box_reach`). What changes for another robot or the real robot, and how far the core goes
+there: [Another robot, or the real robot](#another-robot-or-the-real-robot).
 
 It edits nothing in the core. Each piece uses one of the core's extension points:
 
@@ -100,6 +101,80 @@ project adds its controller to that list (`controllers.additional_arm`) through
 Without it, the switch back to the hold, and `guarded_mission()`'s abort to it after a failure, would leave the
 sweep running and fail on the claimed interfaces; `demo_sine_sweep` refuses to build against a registry that does
 not list its controller.
+
+## Another robot, or the real robot
+
+The demo runs the FR3 in MuJoCo. A project on another arm, or on the real FR3, keeps the same three packages and
+changes what in each names the robot and the backend. What follows is what the pinned core (`v0.1.0`) offers; only
+the FR3 in MuJoCo has been run with this demo.
+
+### What names the robot
+
+| Piece | The demo (FR3) | Another robot |
+| --- | --- | --- |
+| The controller's base class | `cho_controller::franka::FrankaBaseController` (`cho_controller_franka`) | UR5e: `cho_controller::ur::URBaseController` (`cho_controller_ur`); FR5: `cho_controller::fr5::FR5BaseController` (`cho_controller_fr5`); OpenArm: `cho_controller::openarm::OpenArmBaseController`, or `cho_controller_openarm_mit::DirectControllerBase` for the MIT drive protocol (both in `cho_controller_openarm_mit`) |
+| Its parameters | `robot_type`, `bringup_type`, `ee_name` of the FR3 in MuJoCo | the same keys, with the values that bringup's `config/<backend>/controllers*.yaml` gives the core's controllers |
+| The bringup the wrapper includes | `cho_bringup_franka`, `bringup_mujoco_robot.launch.py` | `cho_bringup_<robot>`, `bringup_<backend>_robot.launch.py`; `--show-args` lists what it takes |
+| Registry additions | `franka: additional_arm: [...]` | under the robot's registry name, `ur5e`, `fr5` or `openarm`; for OpenArm's bimanual build, under `profiles: <left, right or both>:`, with names starting `left_` or `right_` |
+| Tasks | `TASK = {'franka': <builder>}`, run with `robot_type:=franka` | a builder under `ur5e`, `fr5` or `openarm`, run with that `robot_type:=` (and `arm:=left` or `right` for one arm of OpenArm's bimanual build) |
+
+- The sweep is written for seven joints (`Eigen` 7-vectors). OpenArm has seven; UR5e and FR5 have six.
+- UR5e and FR5 run in the position mode only.
+- The tasks take the hold, the home and the base frame from the registry, so they move to another robot by adding its
+  key. Their defaults name Franka's controllers: `task_space_ik_controller` is on UR5e and FR5 too, but OpenArm's
+  task-space controller is `task_space_impedance_mit_controller`.
+- `URBaseController` has no `nominal_period()`. The Franka, FR5 and OpenArm bases have it, and a controller that
+  advances its own clock takes the period from it
+  ([core CLAUDE.md, Control period](https://github.com/chohh7391/cho_robot_project/blob/v0.1.0/CLAUDE.md#control-period)).
+
+### What each backend takes from a project
+
+The project's controller goes in on every backend the way the demo's does: a spawner after the core's bringup, given
+the controller's type and parameter file, so the core's controller list needs no entry. The rest differs by robot:
+
+| | Franka | UR5e | FR5 | OpenArm |
+| --- | --- | --- | --- | --- |
+| MuJoCo: the project's world | `mujoco_world:=` | - | - (`mujoco_scene:=` picks one of the core's FR5 scenes) | - |
+| MuJoCo: simulation plugins (`BodyPosePublisher`, or the project's own) | `mujoco_plugins:=` | - | - | - |
+| Gazebo: a world file | `world:=` | `world_file:=` | `world_file:=` | no Gazebo bringup |
+| Isaac Sim: the project's world | - | - | - | - |
+| Parts between the flange and the hand, and their payload | `payload_file:=` (every backend); `ee_connection_xacro:=` (Gazebo, real); `xacro_file:=` (MuJoCo, Isaac) | - | - | - |
+
+The Gazebo world goes to `gz sim` as given, so a project's file passes by its absolute path. It has not been tried
+with a project's world.
+
+A `-` is a hook the core does not have yet. A project that needs one adds it to the core as a general extension
+point, then moves its pin to the tag that has it
+([usage guidelines, The core and the projects](https://github.com/chohh7391/cho_robot_project/blob/v0.1.0/docs/usage_guidelines.md#the-core-and-the-projects)).
+
+### On the real robot
+
+**FR3.** The wrapper includes `cho_bringup_franka`'s `bringup_real_robot.launch.py` (`control_mode:=`,
+`controller_name:=`; the robot's IP is in its `config/real/franka.config.yaml`, or `robot_config_file:=`). It spawns
+the project's controller as in simulation, with `use_sim_time` false. The controller's parameter file changes:
+
+- `bringup_type: real`. The base adds the torque terms the backend does not, so a simulation's value on the real
+  robot adds gravity on top of libfranka's own compensation.
+- `update_rate: 1000`, what the core's `config/real/controllers.yaml` gives each of its controllers.
+- For a torque law, the end-effector payload the core gives its own controllers: `mass`, `center_of_mass` and
+  `load_inertia`, from `config/payload.yaml` or the project's `payload_file:=`.
+
+The session follows the core's
+[Running the real FR3](https://github.com/chohh7391/cho_robot_project/blob/v0.1.0/docs/usage_guidelines.md#running-the-real-fr3):
+Desk's end-effector setting matching what is mounted, one control mode per bringup, stages from a hold to the full
+motion, and the FCI's state recorded. `sine_joint_controller` has never run on the robot, so it would start with a
+hold and one short segment.
+
+**UR5e, FR5.** Each has a `bringup_real_robot.launch.py`, position mode only. UR5e also takes `controllers_file:=`,
+and FR5 takes its robot settings in `config_file:=`. The project's controller is spawned the same way. In the core's
+README, UR5e's real path needs the vendor driver's setup and FR5's is still to be validated on the hardware.
+
+**OpenArm.** The real bringup is at its commissioning stage and runs only the MIT controllers: it refuses a
+`controller_name` outside `launch_utils.REAL_MIT_DIRECT_CONTROLLERS`
+([openarm_real_bringup.md](https://github.com/chohh7391/cho_robot_project/blob/v0.1.0/docs/openarm_real_bringup.md)).
+A project controller there would be an MIT producer on `DirectControllerBase` that follows the
+[MIT contract](https://github.com/chohh7391/cho_robot_project/blob/v0.1.0/docs/openarm_mit_contract_v1.md). None has
+been tried.
 
 ## Starting a project from this one
 
