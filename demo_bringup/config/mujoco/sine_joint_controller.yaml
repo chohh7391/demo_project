@@ -8,7 +8,7 @@ sine_joint_controller:
     robot_type: fr3
     bringup_type: mujoco
     ee_name: fr3_hand_tcp
-    # The sweep (demo_controller/src/sine_joint_controller_parameters.yaml).
+    # The sweep (demo_controller/params/sine_joint_controller_parameters.yaml).
     joint: 7            # 1-based
     amplitude: 0.15     # [rad] either side of where it was switched in
     frequency: 0.5      # [Hz]

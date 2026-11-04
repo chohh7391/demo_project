@@ -66,7 +66,7 @@ and goes home again. `/sine_joint_controller/controller_state` carries the sweep
 Where each setting is:
 - the sweep (joint, amplitude, frequency, ramp, the rate it may reach):
   `demo_bringup/config/mujoco/sine_joint_controller.yaml`, ranges in
-  `demo_controller/src/sine_joint_controller_parameters.yaml`;
+  `demo_controller/params/sine_joint_controller_parameters.yaml`;
 - how long it sweeps, and the home moves: `task_params`, `demo_tasks/config/sine_sweep.yaml`.
 
 ### The world and what is read from it

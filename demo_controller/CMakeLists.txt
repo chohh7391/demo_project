@@ -48,7 +48,7 @@ find_package(cho_controller_base REQUIRED)
 find_package(cho_controller_franka REQUIRED)
 
 generate_parameter_library(demo_sine_joint_controller_parameters
-  src/sine_joint_controller_parameters.yaml)
+  params/sine_joint_controller_parameters.yaml)
 
 add_library(${PROJECT_NAME} SHARED src/sine_joint_controller.cpp)
 target_include_directories(${PROJECT_NAME} PUBLIC include ${EIGEN3_INCLUDE_DIRS})
